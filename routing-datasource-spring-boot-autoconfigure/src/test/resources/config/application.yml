@@ -1,0 +1,133 @@
+datasource:
+  routing:
+    master:
+      url: jdbc:h2:mem:MASTER
+      driver-class-name: org.h2.Driver
+      username: sa
+      initialize: true
+      schema: master.sql
+      tomcat:
+        max-active: 10
+    slave:
+      url: jdbc:h2:mem:SLAVE
+      driver-class-name: org.h2.Driver
+      username: sa
+      initialize: true
+      schema: slave.sql
+      tomcat:
+        maxActive: 10
+    switch-off:
+      url: jdbc:h2:mem:SWITCHOFF
+      driver-class-name: org.h2.Driver
+      username: sa
+      initialize: true
+      schema: switch-off.sql
+      tomcat:
+        max-active: 10
+    switch-on:
+      url: jdbc:h2:mem:SWITCHON
+      driver-class-name: org.h2.Driver
+      username: sa
+      initialize: true
+      schema: switch-on.sql
+      tomcat:
+        maxActive: 10
+    defaults:
+      url: jdbc:h2:mem:DEFAULTS
+      driver-class-name: org.h2.Driver
+      username: sa
+      initialize: true
+      schema: defaults.sql
+      tomcat:
+        maxActive: 10
+    mapped:
+      first:
+        url: jdbc:h2:mem:MAPPED1
+        driver-class-name: org.h2.Driver
+        username: sa
+        initialize: true
+        schema: mapped1.sql
+        tomcat:
+          maxActive: 10
+      second:
+        url: jdbc:h2:mem:MAPPED2
+        driver-class-name: org.h2.Driver
+        username: sa
+        initialize: true
+        schema: mapped2.sql
+        tomcat:
+          maxActive: 10
+    multi:
+      first:
+        master: master1
+        slave: slave1
+      second:
+        switch-off: switchoff1
+        switch-on: switchon1
+      third:
+        standalone: switchoff2
+    targets:
+      switchoff1:
+        url: jdbc:h2:mem:SWITCHOFF1
+        driver-class-name: org.h2.Driver
+        username: sa
+        initialize: true
+        schema: switch-off-first.sql
+        tomcat:
+          maxActive: 10
+      switchoff2:
+        url: jdbc:h2:mem:SWITCHOFF2
+        driver-class-name: org.h2.Driver
+        username: sa
+        initialize: true
+        schema: switch-off-second.sql
+        tomcat:
+          maxActive: 1
+      switchon1:
+        url: jdbc:h2:mem:SWITCHON1
+        driver-class-name: org.h2.Driver
+        username: sa
+        initialize: true
+        schema: switch-on-first.sql
+        tomcat:
+          maxActive: 10
+      switchon2:
+        url: jdbc:h2:mem:SWITCHON2
+        driver-class-name: org.h2.Driver
+        username: sa
+        initialize: true
+        schema: switch-on-second.sql
+        tomcat:
+          maxActive: 1
+      master1:
+        url: jdbc:h2:mem:MASTER1
+        driver-class-name: org.h2.Driver
+        username: sa
+        initialize: true
+        schema: master-first.sql
+        tomcat:
+          maxActive: 10
+      master2:
+        url: jdbc:h2:mem:MASTER2
+        driver-class-name: org.h2.Driver
+        username: sa
+        initialize: true
+        schema: master-second.sql
+        tomcat:
+          maxActive: 1
+      slave1:
+        url: jdbc:h2:mem:SLAVES1
+        driver-class-name: org.h2.Driver
+        username: sa
+        initialize: true
+        schema: slave-first.sql
+        tomcat:
+          maxActive: 10
+      slave2:
+        url: jdbc:h2:mem:SLAVES2
+        driver-class-name: org.h2.Driver
+        username: sa
+        initialize: true
+        schema: slave-second.sql
+        tomcat:
+          maxActive: 1

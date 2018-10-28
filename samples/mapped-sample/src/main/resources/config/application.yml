@@ -1,0 +1,44 @@
+spring:
+  application:
+    name: sample
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+
+datasource:
+  routing:
+    enabled: true
+    defaults:
+      url: jdbc:h2:mem:DEFAULTS;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+      driver-class-name: org.h2.Driver
+      username: sa
+      initialize: true
+      schema: classpath:defaults.sql
+      tomcat:
+        max-active: 10
+    mapped:
+      first:
+        url: jdbc:h2:mem:MAPPED1;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+        type: com.zaxxer.hikari.HikariDataSource
+        driver-class-name: org.h2.Driver
+        username: sa
+        initialize: true
+        schema: classpath:mapped1.sql
+        hikari:
+          maximum-pool-size: 10
+      second:
+        url: jdbc:h2:mem:MAPPED2;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+        type: com.zaxxer.hikari.HikariDataSource
+        driver-class-name: org.h2.Driver
+        username: sa
+        initialize: true
+        schema: classpath:mapped2.sql
+        hikari:
+          maximum-pool-size: 10
+
+management:
+  security:
+    enabled: false
+
+logging:
+  level:
+    root: info

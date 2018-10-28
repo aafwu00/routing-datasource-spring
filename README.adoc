@@ -1,0 +1,171 @@
+image:https://img.shields.io/badge/License-Apache%202.0-blue.svg["License Apache 2.0", link="https://opensource.org/licenses/Apache-2.0"]
+image:https://jitpack.io/v/aafwu00/routing-datasource-spring.svg["Release", link=
+"https://jitpack.io/#aafwu00/routing-datasource-spring"]
+image:https://circleci.com/gh/aafwu00/routing-datasource-spring.svg?style=svg["CircleCI", link="https://circleci.com/gh/aafwu00/routing-datasource-spring"]
+image:https://app.fossa.io/api/projects/git%2Bgithub.com%2Faafwu00%2Frouting-datasource-spring.svg?type=shield["FOSSA Status", link="https://app.fossa.io/projects/git%2Bgithub.com%2Faafwu00%2Frouting-datasource-spring?ref=badge_shield"]
+image:https://api.codacy.com/project/badge/Grade/7e1d4c8db17c47a591d98cd499a47b24["codacy", link="https://www.codacy.com/app/aafwu00/routing-datasource-spring?utm_source=github.com&utm_medium=referral&utm_content=aafwu00/routing-datasource-spring&utm_campaign=badger"]
+image:https://codecov.io/gh/aafwu00/routing-datasource-spring/branch/master/graph/badge.svg["codecov", link="https://codecov.io/gh/aafwu00/routing-datasource-spring"]
+
+= Routing DataSource Spring
+
+This project provides Routing Multi DataSource integrations for Spring Boot
+
+== Getting Start
+
+=== Prerequisites
+
+=== Build
+:jdkversion: 1.8
+
+To build the source you will need to install JDK {jdkversion}.
+
+----
+$ ./gradlew build
+----
+
+=== Usage
+
+1. Dependency Management
+
+[source,gradle]
+----
+repositories {
+    maven { url 'https://jitpack.io' } <1>
+}
+
+dependencies {
+    compile 'com.github.aafwu00:routing-datasource-spring-boot-starter:x.y.z' <2>
+}
+----
+<1> add `jitpack` repository
+<2> add dependency
+
+2. Add the following an annotation to your Spring configuration
+
+[source,java]
+----
+`@EnableTransactionManagement`
+----
+
+3. Write `application.yml` code
+
+.Table RoutingDataSourceProperties
+|===
+| Name | Default | Description
+
+| datasource.routing.enabled
+| false
+|
+
+| datasource.routing.type
+|
+| Whether to choose routing type(`Replication`, `Switchable` and `MultiRouting`)
+
+|===
+
+.Table SwitchableDataSourceProperties
+|===
+
+| datasource.routing.switchOff.*
+|
+| Switch Off DataSource. Same as `spring.datasource.*`, See on https://docs.spring.io/spring-boot/docs/1.5.17.RELEASE/reference/htmlsingle/#howto-configure-a-datasource[DataSource Properties]
+
+| datasource.routing.switchOn.*
+|
+| Switch On DataSource. Same as `spring.datasource.*`, See on https://docs.spring.io/spring-boot/docs/1.5.17.RELEASE/reference/htmlsingle/#howto-configure-a-datasource[DataSource Properties]
+
+|===
+
+* See on link:samples/switchable-sample[switchable-sample]
+
+.Table ReplicationDataSourceProperties
+|===
+
+| datasource.routing.master.*
+|
+| Master DataSource. Same as `spring.datasource.*`, See on https://docs.spring.io/spring-boot/docs/1.5.17.RELEASE/reference/htmlsingle/#howto-configure-a-datasource[DataSource Properties]
+
+| datasource.routing.slave.*
+|
+| Slave DataSource(readOnly = true). Same as `spring.datasource.*`, See on https://docs.spring.io/spring-boot/docs/1.5.17.RELEASE/reference/htmlsingle/#howto-configure-a-datasource[DataSource Properties]
+
+|===
+
+* See on link:samples/switchable-sample[switchable-sample]
+
+.Table MappedDataSourceProperties
+|===
+
+| datasource.routing.defaults.*
+|
+| Default DataSource. Same as `spring.datasource.*`, See on https://docs.spring.io/spring-boot/docs/1.5.17.RELEASE/reference/htmlsingle/#howto-configure-a-datasource[DataSource Properties]
+
+| datasource.routing.mapped.[key].*
+|
+| Mapping DataSource. Same as `spring.datasource.*`, See on https://docs.spring.io/spring-boot/docs/1.5.17.RELEASE/reference/htmlsingle/#howto-configure-a-datasource[DataSource Properties]
+
+|===
+
+* See on link:samples/mapped-sample[mapped-sample]
+
+.Table MultiRoutingDataSourceProperties
+|===
+
+| datasource.routing.targets.[name].*
+|
+| Multi DataSource. Same as `spring.datasource.*`, See on https://docs.spring.io/spring-boot/docs/1.5.17.RELEASE/reference/htmlsingle/#howto-configure-a-datasource[DataSource Properties]
+
+| datasource.routing.multi.[name].standalone
+|
+| Single DataSource, Use `datasource.routing.targets.[name]`
+
+| datasource.routing.multi.[name].master
+|
+| Replication DataSource, Use `datasource.routing.targets.[name]`
+
+| datasource.routing.multi.[name].slave
+|
+| Replication DataSource, Use `datasource.routing.targets.[name]`
+
+| datasource.routing.multi.[name].switchOff
+|
+| Switchable DataSource, Use `datasource.routing.targets.[name]`
+
+| datasource.routing.multi.[name].switchOn
+|
+| Switchable DataSource, Use `datasource.routing.targets.[name]`
+
+| datasource.routing.multi.[name].defaults
+|
+| Mapped DataSource, Use `datasource.routing.targets.[name]`
+
+| datasource.routing.multi.[name].mapped.[key]
+|
+| Mapped DataSource, Use `datasource.routing.targets.[name]`
+
+|===
+
+* See on link:samples/multi-switchable-sample[multi-switchable-sample], link:samples/multi-replication-sample[multi-replication-sample]
+
+
+== Contributing
+
+Please read link:CONTRIBUTING.md[CONTRIBUTING.md] for details on our code of conduct, and the process for submitting pull requests to us.
+
+== Versioning
+
+We use http://semver.org/[SemVer] for versioning. For the versions available, see the link:https://github.com/aafwu00/routing-datasource-spring/tags[tags on this repository].
+
+== Authors
+
+* **Taeho Kim** - *Initial work* - https://github.com/aafwu00[aafwu00]
+
+== License
+
+This project is licensed under the Apache License 2.0 - see the link:LICENSE[LICENSE] file for details
+
+image:https://app.fossa.io/api/projects/git%2Bgithub.com%2Faafwu00%2Frouting-datasource-spring.svg?type=large["FOSSA Status", link="https://app.fossa.io/projects/git%2Bgithub.com%2Faafwu00%2Frouting-datasource-spring?ref=badge_large"]
+
+== Acknowledgments
+* https://github.com/spring-projects/spring-boot[Spring Boot]
+* http://nebula-plugins.github.io[Gradle Nebula Plugins]

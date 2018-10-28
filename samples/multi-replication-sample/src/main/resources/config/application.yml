@@ -1,0 +1,53 @@
+spring:
+  application:
+    name: sample
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+
+datasource:
+  routing:
+    enabled: true
+    enable-chained-transaction-manager: false
+    multi:
+      display:
+        master: main
+        slave: display
+      product:
+        master: main
+        slave: product
+    targets:
+      display:
+        url: jdbc:h2:mem:DISPLAY;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+        type: com.zaxxer.hikari.HikariDataSource
+        driver-class-name: org.h2.Driver
+        username: sa
+        initialize: true
+        schema: classpath:display.sql
+        hikari:
+          maximum-pool-size: 10
+      product:
+        url: jdbc:h2:mem:PRODUCT;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+        type: com.zaxxer.hikari.HikariDataSource
+        driver-class-name: org.h2.Driver
+        username: sa
+        initialize: true
+        schema: classpath:product.sql
+        hikari:
+          maximum-pool-size: 10
+      main:
+        url: jdbc:h2:mem:MAIN;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+        driver-class-name: org.h2.Driver
+        username: sa
+        initialize: true
+        schema: classpath:main.sql
+        tomcat:
+          max-active: 10
+
+management:
+  security:
+    enabled: false
+
+logging:
+  level:
+    root: info
+    

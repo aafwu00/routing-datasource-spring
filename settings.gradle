@@ -1,0 +1,16 @@
+rootProject.name = 'routing-datasource-spring-parent'
+
+enableFeaturePreview('STABLE_PUBLISHING')
+
+include 'routing-datasource-spring-boot-autoconfigure'
+include 'routing-datasource-spring-boot-starter'
+
+if (!hasProperty('exclude-ci')) {
+    include 'samples:replication-sample'
+    include 'samples:switchable-sample'
+    include 'samples:mapped-sample'
+    include 'samples:switchable-replication-sample'
+    include 'samples:multi-switchable-sample'
+    include 'samples:multi-replication-sample'
+    include 'samples:multi-switchable-replication-sample'
+}
