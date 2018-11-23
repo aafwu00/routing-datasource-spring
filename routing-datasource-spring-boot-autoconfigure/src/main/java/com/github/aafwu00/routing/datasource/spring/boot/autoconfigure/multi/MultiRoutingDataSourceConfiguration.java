@@ -16,7 +16,6 @@
 
 package com.github.aafwu00.routing.datasource.spring.boot.autoconfigure.multi;
 
-import org.springframework.boot.actuate.endpoint.PublicMetrics;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -35,7 +34,9 @@ import com.github.aafwu00.routing.datasource.spring.Switching;
 import com.github.aafwu00.routing.datasource.spring.boot.autoconfigure.RoutingCondition;
 import com.github.aafwu00.routing.datasource.spring.boot.autoconfigure.RoutingDataSourceAvailableCondition;
 import com.github.aafwu00.routing.datasource.spring.boot.autoconfigure.RoutingType;
-import com.github.aafwu00.routing.datasource.spring.boot.autoconfigure.support.RoutingDataSourcePublicMetrics;
+import com.github.aafwu00.routing.datasource.spring.boot.autoconfigure.support.RoutingDataSourceMetrics;
+
+import io.micrometer.core.instrument.binder.MeterBinder;
 
 import static com.github.aafwu00.routing.datasource.spring.boot.autoconfigure.multi.MultiRoutingDataSourceProperties.MULTI;
 import static com.github.aafwu00.routing.datasource.spring.boot.autoconfigure.multi.MultiRoutingDataSourceProperties.TARGETS;
@@ -81,12 +82,12 @@ public class MultiRoutingDataSourceConfiguration {
 
     @Configuration
     @ConditionalOnProperty(value = RoutingType.SCOPE + ".metrics.enabled", matchIfMissing = true)
-    @ConditionalOnClass(PublicMetrics.class)
-    static class RoutingDataSourcePublicMetricsConfiguration {
+    @ConditionalOnClass(MeterBinder.class)
+    static class RoutingDataSourceMetricsConfiguration {
         @Bean
-        public RoutingDataSourcePublicMetrics<String> routingDataSourcePublicMetrics(
+        public RoutingDataSourceMetrics<String> routingDataSourceMetrics(
             final MultiRoutingDataSourcesHolder multiRoutingDataSourcesHolder) {
-            return new RoutingDataSourcePublicMetrics<>(multiRoutingDataSourcesHolder.getTargetDataSources());
+            return new RoutingDataSourceMetrics<>(multiRoutingDataSourcesHolder.getTargetDataSources());
         }
     }
 

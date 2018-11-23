@@ -30,6 +30,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.springframework.boot.jdbc.DataSourceInitializationMode.NEVER;
 
 /**
  * @author Taeho Kim
@@ -39,8 +40,8 @@ import static org.junit.jupiter.api.Assertions.assertAll;
                       initializers = ConfigFileApplicationContextInitializer.class)
 @TestPropertySource(properties = {"datasource.routing.enabled=false",
                                   "datasource.routing.type=Switchable",
-                                  "datasource.routing.switch-off.initialize=false",
-                                  "datasource.routing.switch-on.initialize=false"})
+                                  "datasource.routing.switch-off.initializationMode=never",
+                                  "datasource.routing.switch-on.initializationMode=never"})
 @DirtiesContext
 class SwitchableDataSourcePropertiesTest {
     @Autowired
@@ -54,12 +55,12 @@ class SwitchableDataSourcePropertiesTest {
             () -> assertThat(off.getUrl()).isEqualTo("jdbc:h2:mem:SWITCHOFF"),
             () -> assertThat(off.getDriverClassName()).isEqualTo("org.h2.Driver"),
             () -> assertThat(off.getUsername()).isEqualTo("sa"),
-            () -> assertThat(off.isInitialize()).isFalse(),
+            () -> assertThat(off.getInitializationMode()).isEqualTo(NEVER),
             () -> assertThat(off.getSchema()).containsOnly("switch-off.sql"),
             () -> assertThat(on.getUrl()).isEqualTo("jdbc:h2:mem:SWITCHON"),
             () -> assertThat(on.getDriverClassName()).isEqualTo("org.h2.Driver"),
             () -> assertThat(on.getUsername()).isEqualTo("sa"),
-            () -> assertThat(on.isInitialize()).isFalse(),
+            () -> assertThat(on.getInitializationMode()).isEqualTo(NEVER),
             () -> assertThat(on.getSchema()).containsOnly("switch-on.sql")
         );
     }

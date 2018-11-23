@@ -31,16 +31,16 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.PropertyAccessorFactory;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceBuilder;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
-import org.springframework.boot.bind.PropertySourcesPropertyValues;
-import org.springframework.boot.bind.RelaxedDataBinder;
-import org.springframework.boot.context.config.ResourceNotFoundException;
+import org.springframework.boot.context.properties.bind.Bindable;
+import org.springframework.boot.context.properties.bind.Binder;
+import org.springframework.boot.context.properties.source.InvalidConfigurationPropertyValueException;
+import org.springframework.boot.jdbc.DataSourceBuilder;
+import org.springframework.boot.jdbc.DataSourceInitializationMode;
 import org.springframework.boot.jdbc.DatabaseDriver;
+import org.springframework.boot.jdbc.EmbeddedDatabaseConnection;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.core.convert.support.DefaultConversionService;
-import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.io.Resource;
 import org.springframework.jdbc.config.SortedResourcesFactoryBean;
 import org.springframework.jdbc.datasource.init.DatabasePopulatorUtils;
@@ -124,22 +124,20 @@ public class TargetDataSourcesFactory<T> implements FactoryBean<TargetDataSource
             return build.get(properties);
         }
         final DataSourceBuilder builder = properties.initializeDataSourceBuilder();
-        final DataSource result = builder.build();
-        bind(result, namePrefix);
-        bindTomcatDataSource(result, properties);
-        init(result, properties, namePrefix);
+        final DataSource result = bind(builder.build(), namePrefix);
+        bindIfTomcatDataSource(result, properties);
+        initializer(result, properties, namePrefix);
         build.putIfAbsent(properties, result);
         return result;
     }
 
-    private void bind(final DataSource dataSource, final String namePrefix) {
-        final RelaxedDataBinder binder = new RelaxedDataBinder(dataSource, namePrefix(dataSource, namePrefix));
-        binder.setConversionService(DefaultConversionService.getSharedInstance());
-        binder.bind(new PropertySourcesPropertyValues(ConfigurableEnvironment.class.cast(applicationContext.getEnvironment())
-                                                                                   .getPropertySources()));
+    private DataSource bind(final DataSource dataSource, final String namePrefix) {
+        return Binder.get(applicationContext.getEnvironment())
+                     .bind(namePrefix(dataSource, namePrefix), Bindable.ofInstance(dataSource))
+                     .orElse(dataSource);
     }
 
-    private void bindTomcatDataSource(final DataSource dataSource, final DataSourceProperties properties) {
+    private void bindIfTomcatDataSource(final DataSource dataSource, final DataSourceProperties properties) {
         if (DataSourceType.Tomcat.isSameType(dataSource)) {
             final DatabaseDriver databaseDriver = DatabaseDriver.fromJdbcUrl(properties.determineUrl());
             final String validationQuery = databaseDriver.getValidationQuery();
@@ -157,8 +155,10 @@ public class TargetDataSourcesFactory<T> implements FactoryBean<TargetDataSource
                                                 .orElse("properties");
     }
 
-    private void init(final DataSource result, final DataSourceProperties properties, final String namePrefix) {
-        new DataSourceInitializer(applicationContext, properties, result, namePrefix).init();
+    private void initializer(final DataSource result, final DataSourceProperties properties, final String namePrefix) {
+        final DataSourceInitializer initializer = new DataSourceInitializer(applicationContext, properties, result, namePrefix);
+        initializer.createSchema();
+        initializer.initSchema();
     }
 
     // org.springframework.boot.autoconfigure.jdbc.DataSourceInitializer 가 내부만 쓸수 있어서 copy
@@ -179,30 +179,61 @@ public class TargetDataSourcesFactory<T> implements FactoryBean<TargetDataSource
             this.namePrefix = requireNonNull(namePrefix);
         }
 
-        public void init() {
-            if (!properties.isInitialize()) {
-                LOGGER.debug("Initialization disabled (not running DDL scripts)");
-                return;
-            }
-            runSchemaScripts();
-        }
-
-        private void runSchemaScripts() {
+        /**
+         * Create the schema if necessary.
+         *
+         * @return {@code true} if the schema was created
+         * @see DataSourceProperties#getSchema()
+         */
+        public boolean createSchema() {
             final List<Resource> scripts = getScripts(namePrefix + ".schema", properties.getSchema(), "schema");
             if (!scripts.isEmpty()) {
+                if (!isEnabled()) {
+                    LOGGER.debug("Initialization disabled (not running DDL scripts)");
+                    return false;
+                }
                 final String username = properties.getSchemaUsername();
                 final String password = properties.getSchemaPassword();
                 runScripts(scripts, username, password);
-                runDataScripts();
+            }
+            return !scripts.isEmpty();
+        }
+
+        /**
+         * Initialize the schema if necessary.
+         *
+         * @see DataSourceProperties#getData()
+         */
+        public void initSchema() {
+            final List<Resource> scripts = getScripts(namePrefix + ".data", properties.getData(), "data");
+            if (!scripts.isEmpty()) {
+                if (!isEnabled()) {
+                    LOGGER.debug("Initialization disabled (not running data scripts)");
+                    return;
+                }
+                final String username = properties.getDataUsername();
+                final String password = properties.getDataPassword();
+                runScripts(scripts, username, password);
             }
         }
 
-        private void runDataScripts() {
-            final List<Resource> scripts = getScripts(namePrefix + ".data",
-                                                      properties.getData(), "data");
-            final String username = properties.getDataUsername();
-            final String password = properties.getDataPassword();
-            runScripts(scripts, username, password);
+        private boolean isEnabled() {
+            final DataSourceInitializationMode mode = properties.getInitializationMode();
+            if (mode == DataSourceInitializationMode.NEVER) {
+                return false;
+            }
+            return mode != DataSourceInitializationMode.EMBEDDED || isEmbedded();
+        }
+
+        private boolean isEmbedded() {
+            try {
+                return EmbeddedDatabaseConnection.isEmbedded(this.dataSource);
+                // CHECKSTYLE:OFF
+            } catch (Exception ex) {
+                // CHECKSTYLE:ON
+                LOGGER.debug("Could not determine if datasource is embedded", ex);
+                return false;
+            }
         }
 
         private List<Resource> getScripts(final String propertyName, final List<String> resources, final String fallback) {
@@ -223,7 +254,9 @@ public class TargetDataSourcesFactory<T> implements FactoryBean<TargetDataSource
                     if (resource.exists()) {
                         resources.add(resource);
                     } else if (validate) {
-                        throw new ResourceNotFoundException(propertyName, resource);
+                        throw new InvalidConfigurationPropertyValueException(propertyName,
+                                                                             resource,
+                                                                             "The specified resource does not exist.");
                     }
                 }
             }

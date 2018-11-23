@@ -11,6 +11,8 @@ dependencies {
     compile 'com.zaxxer:HikariCP', optional
     compile 'org.apache.commons:commons-dbcp2', optional
     compile 'org.springframework.boot:spring-boot-starter-cache', optional
+    compile 'io.micrometer:micrometer-core', optional
 
     testCompile 'com.h2database:h2'
+    testCompile "io.micrometer:micrometer-test:${dependencyManagement.importedProperties['micrometer.version']}"
 }

@@ -16,20 +16,25 @@
 
 package com.github.aafwu00.routing.datasource.spring.boot.autoconfigure;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionMessage;
 import org.springframework.boot.autoconfigure.condition.ConditionOutcome;
 import org.springframework.boot.autoconfigure.condition.SpringBootCondition;
-import org.springframework.boot.bind.RelaxedPropertyResolver;
+import org.springframework.boot.context.properties.bind.Bindable;
+import org.springframework.boot.context.properties.bind.Binder;
+import org.springframework.boot.context.properties.source.ConfigurationPropertyName;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 
 import static com.github.aafwu00.routing.datasource.spring.boot.autoconfigure.RoutingCondition.PREFIX;
-import static org.springframework.util.CollectionUtils.isEmpty;
+import static java.util.Collections.emptyMap;
 
 /**
  * @author Taeho Kim
  */
 public class RoutingDataSourceAvailableCondition extends SpringBootCondition {
+    private static final Logger LOGGER = LoggerFactory.getLogger(RoutingDataSourceAvailableCondition.class);
     private final String condition;
     private final String fallback;
     private final String defaults;
@@ -44,13 +49,27 @@ public class RoutingDataSourceAvailableCondition extends SpringBootCondition {
     @Override
     public ConditionOutcome getMatchOutcome(final ConditionContext context, final AnnotatedTypeMetadata metadata) {
         final ConditionMessage.Builder message = ConditionMessage.forCondition(condition);
-        final RelaxedPropertyResolver resolver = new RelaxedPropertyResolver(context.getEnvironment(), PREFIX);
-        if (isEmpty(resolver.getSubProperties(defaults + "."))) {
+        if (hasNotSubProperties(context, defaults)) {
             return ConditionOutcome.noMatch(message.didNotFind(PREFIX + defaults).atAll());
         }
-        if (isEmpty(resolver.getSubProperties(fallback + "."))) {
+        if (hasNotSubProperties(context, fallback)) {
             return ConditionOutcome.noMatch(message.didNotFind(PREFIX + fallback).atAll());
         }
         return ConditionOutcome.match(message.because("Routing " + PREFIX + "[" + defaults + "," + fallback + "] specified"));
     }
+
+    private boolean hasNotSubProperties(final ConditionContext context, final String name) {
+        try {
+            return Binder.get(context.getEnvironment())
+                         .bind(ConfigurationPropertyName.of(PREFIX + name), Bindable.mapOf(String.class, String.class))
+                         .orElse(emptyMap())
+                         .isEmpty();
+            // CHECKSTYLE:OFF
+        } catch (Exception ex) {
+            // CHECKSTYLE:ON
+            LOGGER.debug("`{}{}` is empty", PREFIX, name);
+            return true;
+        }
+    }
 }
+

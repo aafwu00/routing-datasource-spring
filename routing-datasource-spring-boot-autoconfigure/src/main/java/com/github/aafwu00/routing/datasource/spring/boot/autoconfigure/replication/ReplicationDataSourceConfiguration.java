@@ -16,7 +16,6 @@
 
 package com.github.aafwu00.routing.datasource.spring.boot.autoconfigure.replication;
 
-import org.springframework.boot.actuate.endpoint.PublicMetrics;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -32,9 +31,11 @@ import com.github.aafwu00.routing.datasource.spring.boot.autoconfigure.RoutingCo
 import com.github.aafwu00.routing.datasource.spring.boot.autoconfigure.RoutingDataSourceAvailableCondition;
 import com.github.aafwu00.routing.datasource.spring.boot.autoconfigure.RoutingType;
 import com.github.aafwu00.routing.datasource.spring.boot.autoconfigure.support.DelegateRoutingDataSourceFactory;
-import com.github.aafwu00.routing.datasource.spring.boot.autoconfigure.support.RoutingDataSourcePublicMetrics;
+import com.github.aafwu00.routing.datasource.spring.boot.autoconfigure.support.RoutingDataSourceMetrics;
 import com.github.aafwu00.routing.datasource.spring.boot.autoconfigure.support.TargetDataSources;
 import com.github.aafwu00.routing.datasource.spring.boot.autoconfigure.support.TargetDataSourcesFactory;
+
+import io.micrometer.core.instrument.binder.MeterBinder;
 
 import static com.github.aafwu00.routing.datasource.spring.ReplicationType.Master;
 import static com.github.aafwu00.routing.datasource.spring.ReplicationType.Slave;
@@ -70,12 +71,12 @@ public class ReplicationDataSourceConfiguration {
 
     @Configuration
     @ConditionalOnProperty(value = RoutingType.SCOPE + ".metrics.enabled", matchIfMissing = true)
-    @ConditionalOnClass(PublicMetrics.class)
-    static class RoutingDataSourcePublicMetricsConfiguration {
+    @ConditionalOnClass(MeterBinder.class)
+    static class RoutingDataSourceMetricsConfiguration {
         @Bean
-        public RoutingDataSourcePublicMetrics<ReplicationType> routingDataSourcePublicMetrics(
+        public RoutingDataSourceMetrics<ReplicationType> routingDataSourceMetrics(
             final TargetDataSources<ReplicationType> targetDataSources) {
-            return new RoutingDataSourcePublicMetrics<>(targetDataSources);
+            return new RoutingDataSourceMetrics<>(targetDataSources);
         }
     }
 

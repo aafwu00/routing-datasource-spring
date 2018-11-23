@@ -20,15 +20,13 @@ import java.util.Collection;
 import java.util.Map;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
-import org.hibernate.validator.constraints.NotEmpty;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.EnvironmentAware;
-import org.springframework.core.env.Environment;
 import org.springframework.validation.annotation.Validated;
 
 import com.github.aafwu00.routing.datasource.spring.boot.autoconfigure.RoutingType;
@@ -41,11 +39,10 @@ import static org.springframework.util.StringUtils.hasText;
  */
 @Validated
 @ConfigurationProperties(prefix = RoutingType.SCOPE)
-public class MultiRoutingDataSourceProperties implements BeanClassLoaderAware, EnvironmentAware, InitializingBean {
+public class MultiRoutingDataSourceProperties implements BeanClassLoaderAware, InitializingBean {
     public static final String MULTI = "multi";
     public static final String TARGETS = "targets";
     private ClassLoader classLoader;
-    private Environment environment;
     /**
      * Enable ChainedTransactionManager, Off Bean
      */
@@ -72,18 +69,12 @@ public class MultiRoutingDataSourceProperties implements BeanClassLoaderAware, E
 
     private void afterPropertiesSet(final DataSourceProperties properties) throws Exception {
         properties.setBeanClassLoader(classLoader);
-        properties.setEnvironment(environment);
         properties.afterPropertiesSet();
     }
 
     @Override
     public void setBeanClassLoader(final ClassLoader classLoader) {
         this.classLoader = classLoader;
-    }
-
-    @Override
-    public void setEnvironment(final Environment environment) {
-        this.environment = environment;
     }
 
     public boolean isEnableChainedTransactionManager() {

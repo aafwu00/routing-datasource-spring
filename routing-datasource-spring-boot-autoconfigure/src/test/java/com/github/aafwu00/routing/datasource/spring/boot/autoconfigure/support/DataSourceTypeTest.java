@@ -19,9 +19,9 @@ package com.github.aafwu00.routing.datasource.spring.boot.autoconfigure.support;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.tomcat.jdbc.pool.DataSource;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.autoconfigure.jdbc.metadata.CommonsDbcp2DataSourcePoolMetadata;
-import org.springframework.boot.autoconfigure.jdbc.metadata.HikariDataSourcePoolMetadata;
-import org.springframework.boot.autoconfigure.jdbc.metadata.TomcatDataSourcePoolMetadata;
+import org.springframework.boot.jdbc.metadata.CommonsDbcp2DataSourcePoolMetadata;
+import org.springframework.boot.jdbc.metadata.HikariDataSourcePoolMetadata;
+import org.springframework.boot.jdbc.metadata.TomcatDataSourcePoolMetadata;
 
 import com.zaxxer.hikari.HikariDataSource;
 

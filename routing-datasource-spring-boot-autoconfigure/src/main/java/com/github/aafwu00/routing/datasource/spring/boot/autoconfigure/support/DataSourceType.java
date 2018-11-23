@@ -23,10 +23,10 @@ import java.util.Optional;
 import javax.sql.DataSource;
 
 import org.springframework.beans.BeanUtils;
-import org.springframework.boot.autoconfigure.jdbc.metadata.CommonsDbcp2DataSourcePoolMetadata;
-import org.springframework.boot.autoconfigure.jdbc.metadata.DataSourcePoolMetadata;
-import org.springframework.boot.autoconfigure.jdbc.metadata.HikariDataSourcePoolMetadata;
-import org.springframework.boot.autoconfigure.jdbc.metadata.TomcatDataSourcePoolMetadata;
+import org.springframework.boot.jdbc.metadata.CommonsDbcp2DataSourcePoolMetadata;
+import org.springframework.boot.jdbc.metadata.DataSourcePoolMetadata;
+import org.springframework.boot.jdbc.metadata.HikariDataSourcePoolMetadata;
+import org.springframework.boot.jdbc.metadata.TomcatDataSourcePoolMetadata;
 
 import static java.util.Objects.requireNonNull;
 import static org.springframework.util.ClassUtils.getConstructorIfAvailable;

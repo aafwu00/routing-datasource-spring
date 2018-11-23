@@ -32,6 +32,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.springframework.boot.jdbc.DataSourceInitializationMode.NEVER;
 
 /**
  * @author Taeho Kim
@@ -41,9 +42,9 @@ import static org.junit.jupiter.api.Assertions.assertAll;
                       initializers = ConfigFileApplicationContextInitializer.class)
 @TestPropertySource(properties = {"datasource.routing.enabled=false",
                                   "datasource.routing.type=Mapped",
-                                  "datasource.routing.defaults.initialize=false",
-                                  "datasource.routing.mapped.first.initialize=false",
-                                  "datasource.routing.mapped.second.initialize=false"})
+                                  "datasource.routing.defaults.initializationMode=never",
+                                  "datasource.routing.mapped.first.initializationMode=never",
+                                  "datasource.routing.mapped.second.initializationMode=never"})
 @DirtiesContext
 class MappedDataSourcePropertiesTest {
     @Autowired
@@ -59,17 +60,17 @@ class MappedDataSourcePropertiesTest {
             () -> assertThat(defaults.getUrl()).isEqualTo("jdbc:h2:mem:DEFAULTS"),
             () -> assertThat(defaults.getDriverClassName()).isEqualTo("org.h2.Driver"),
             () -> assertThat(defaults.getUsername()).isEqualTo("sa"),
-            () -> assertThat(defaults.isInitialize()).isEqualTo(false),
+            () -> assertThat(defaults.getInitializationMode()).isEqualTo(NEVER),
             () -> assertThat(defaults.getSchema()).containsOnly("defaults.sql"),
             () -> assertThat(mapped1.getUrl()).isEqualTo("jdbc:h2:mem:MAPPED1"),
             () -> assertThat(mapped1.getDriverClassName()).isEqualTo("org.h2.Driver"),
             () -> assertThat(mapped1.getUsername()).isEqualTo("sa"),
-            () -> assertThat(mapped1.isInitialize()).isEqualTo(false),
+            () -> assertThat(mapped1.getInitializationMode()).isEqualTo(NEVER),
             () -> assertThat(mapped1.getSchema()).containsOnly("mapped1.sql"),
             () -> assertThat(mapped2.getUrl()).isEqualTo("jdbc:h2:mem:MAPPED2"),
             () -> assertThat(mapped2.getDriverClassName()).isEqualTo("org.h2.Driver"),
             () -> assertThat(mapped2.getUsername()).isEqualTo("sa"),
-            () -> assertThat(mapped2.isInitialize()).isEqualTo(false),
+            () -> assertThat(mapped2.getInitializationMode()).isEqualTo(NEVER),
             () -> assertThat(mapped2.getSchema()).containsOnly("mapped2.sql")
         );
     }

@@ -32,6 +32,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.springframework.boot.jdbc.DataSourceInitializationMode.NEVER;
 
 /**
  * @author Taeho Kim
@@ -41,14 +42,14 @@ import static org.junit.jupiter.api.Assertions.assertAll;
                       initializers = ConfigFileApplicationContextInitializer.class)
 @TestPropertySource(properties = {"datasource.routing.type=MultiRouting",
                                   "datasource.routing.source.first.master=dp1",
-                                  "datasource.routing.targets.switchoff1.initialize=false",
-                                  "datasource.routing.targets.switchoff2.initialize=false",
-                                  "datasource.routing.targets.switchon1.initialize=false",
-                                  "datasource.routing.targets.switchon2.initialize=false",
-                                  "datasource.routing.targets.master1.initialize=false",
-                                  "datasource.routing.targets.master2.initialize=false",
-                                  "datasource.routing.targets.slave1.initialize=false",
-                                  "datasource.routing.targets.slave2.initialize=false"})
+                                  "datasource.routing.targets.switchoff1.initializationMode=never",
+                                  "datasource.routing.targets.switchoff2.initializationMode=never",
+                                  "datasource.routing.targets.switchon1.initializationMode=never",
+                                  "datasource.routing.targets.switchon2.initializationMode=never",
+                                  "datasource.routing.targets.master1.initializationMode=never",
+                                  "datasource.routing.targets.master2.initializationMode=never",
+                                  "datasource.routing.targets.slave1.initializationMode=never",
+                                  "datasource.routing.targets.slave2.initializationMode=never"})
 @DirtiesContext
 class MultiRoutingDataSourcePropertiesTest {
     @Autowired
@@ -62,12 +63,12 @@ class MultiRoutingDataSourcePropertiesTest {
             () -> assertThat(sources.get("switchoff1").getUrl()).isEqualTo("jdbc:h2:mem:SWITCHOFF1"),
             () -> assertThat(sources.get("switchoff1").getDriverClassName()).isEqualTo("org.h2.Driver"),
             () -> assertThat(sources.get("switchoff1").getUsername()).isEqualTo("sa"),
-            () -> assertThat(sources.get("switchoff1").isInitialize()).isFalse(),
+            () -> assertThat(sources.get("switchoff1").getInitializationMode()).isEqualTo(NEVER),
             () -> assertThat(sources.get("switchoff1").getSchema()).containsOnly("switch-off-first.sql"),
             () -> assertThat(sources.get("slave2").getUrl()).isEqualTo("jdbc:h2:mem:SLAVES2"),
             () -> assertThat(sources.get("slave2").getDriverClassName()).isEqualTo("org.h2.Driver"),
             () -> assertThat(sources.get("slave2").getUsername()).isEqualTo("sa"),
-            () -> assertThat(sources.get("slave2").isInitialize()).isFalse(),
+            () -> assertThat(sources.get("slave2").getInitializationMode()).isEqualTo(NEVER),
             () -> assertThat(sources.get("slave2").getSchema()).containsOnly("slave-second.sql"),
             () -> assertThat(multi.get("first").getMaster()).isEqualTo("master1"),
             () -> assertThat(multi.get("first").getSlave()).isEqualTo("slave1"),

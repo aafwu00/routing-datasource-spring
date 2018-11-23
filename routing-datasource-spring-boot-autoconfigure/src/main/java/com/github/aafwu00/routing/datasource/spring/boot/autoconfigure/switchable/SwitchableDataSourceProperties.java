@@ -22,8 +22,6 @@ import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.EnvironmentAware;
-import org.springframework.core.env.Environment;
 import org.springframework.validation.annotation.Validated;
 
 import com.github.aafwu00.routing.datasource.spring.boot.autoconfigure.RoutingType;
@@ -33,11 +31,10 @@ import com.github.aafwu00.routing.datasource.spring.boot.autoconfigure.RoutingTy
  */
 @Validated
 @ConfigurationProperties(prefix = RoutingType.SCOPE)
-public class SwitchableDataSourceProperties implements BeanClassLoaderAware, EnvironmentAware, InitializingBean {
-    public static final String SWITCH_OFF = "switchOff";
-    public static final String SWITCH_ON = "switchOn";
+public class SwitchableDataSourceProperties implements BeanClassLoaderAware, InitializingBean {
+    public static final String SWITCH_OFF = "switch-off";
+    public static final String SWITCH_ON = "switch-on";
     private ClassLoader classLoader;
-    private Environment environment;
     /**
      * Switch Off DataSource
      */
@@ -57,18 +54,12 @@ public class SwitchableDataSourceProperties implements BeanClassLoaderAware, Env
 
     private void afterPropertiesSet(final DataSourceProperties properties) throws Exception {
         properties.setBeanClassLoader(classLoader);
-        properties.setEnvironment(environment);
         properties.afterPropertiesSet();
     }
 
     @Override
     public void setBeanClassLoader(final ClassLoader classLoader) {
         this.classLoader = classLoader;
-    }
-
-    @Override
-    public void setEnvironment(final Environment environment) {
-        this.environment = environment;
     }
 
     public DataSourceProperties getSwitchOff() {

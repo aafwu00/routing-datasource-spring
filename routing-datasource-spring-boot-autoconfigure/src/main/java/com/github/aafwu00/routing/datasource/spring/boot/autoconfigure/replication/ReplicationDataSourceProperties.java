@@ -22,8 +22,6 @@ import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.EnvironmentAware;
-import org.springframework.core.env.Environment;
 import org.springframework.validation.annotation.Validated;
 
 import com.github.aafwu00.routing.datasource.spring.boot.autoconfigure.RoutingType;
@@ -33,11 +31,10 @@ import com.github.aafwu00.routing.datasource.spring.boot.autoconfigure.RoutingTy
  */
 @Validated
 @ConfigurationProperties(prefix = RoutingType.SCOPE)
-public class ReplicationDataSourceProperties implements BeanClassLoaderAware, EnvironmentAware, InitializingBean {
+public class ReplicationDataSourceProperties implements BeanClassLoaderAware, InitializingBean {
     public static final String MASTER = "master";
     public static final String SLAVE = "slave";
     private ClassLoader classLoader;
-    private Environment environment;
     /**
      * Master DataSource
      */
@@ -57,18 +54,12 @@ public class ReplicationDataSourceProperties implements BeanClassLoaderAware, En
 
     private void afterPropertiesSet(final DataSourceProperties properties) throws Exception {
         properties.setBeanClassLoader(classLoader);
-        properties.setEnvironment(environment);
         properties.afterPropertiesSet();
     }
 
     @Override
     public void setBeanClassLoader(final ClassLoader classLoader) {
         this.classLoader = classLoader;
-    }
-
-    @Override
-    public void setEnvironment(final Environment environment) {
-        this.environment = environment;
     }
 
     public DataSourceProperties getMaster() {

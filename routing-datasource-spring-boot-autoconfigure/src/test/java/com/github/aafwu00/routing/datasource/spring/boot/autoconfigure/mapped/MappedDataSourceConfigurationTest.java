@@ -19,133 +19,109 @@ package com.github.aafwu00.routing.datasource.spring.boot.autoconfigure.mapped;
 import java.util.Map;
 
 import org.apache.tomcat.jdbc.pool.DataSource;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.test.context.assertj.AssertableApplicationContext;
+import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.jdbc.datasource.LazyConnectionDataSourceProxy;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.github.aafwu00.routing.datasource.spring.DelegateRoutingDataSource;
 import com.github.aafwu00.routing.datasource.spring.boot.autoconfigure.RoutingDataSourceAutoConfiguration;
-import com.github.aafwu00.routing.datasource.spring.boot.autoconfigure.support.RoutingDataSourcePublicMetrics;
+import com.github.aafwu00.routing.datasource.spring.boot.autoconfigure.support.RoutingDataSourceMetrics;
 import com.zaxxer.hikari.HikariDataSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.springframework.boot.test.util.EnvironmentTestUtils.addEnvironment;
 
 /**
  * @author Taeho Kim
  */
 class MappedDataSourceConfigurationTest {
-    private AnnotationConfigApplicationContext context;
+    private ApplicationContextRunner contextRunner;
 
     @BeforeEach
     void setUp() {
-        context = new AnnotationConfigApplicationContext();
-    }
-
-    @AfterEach
-    void tearDown() {
-        context.close();
+        contextRunner = new ApplicationContextRunner().withConfiguration(AutoConfigurations.of(RoutingDataSourceAutoConfiguration.class));
     }
 
     @Test
-    void should_be_not_loaded_MappedDataSource_when_disabled() {
-        loadContext("datasource.routing.enabled=false");
-        assertThatThrownBy(this::dataSource).isExactlyInstanceOf(NoSuchBeanDefinitionException.class);
-    }
-
-    private LazyConnectionDataSourceProxy dataSource() {
-        return context.getBean(LazyConnectionDataSourceProxy.class);
+    void should_be_not_loaded_MappedDataSource_when_replication_disabled() {
+        contextRunner.withPropertyValues("datasource.routing.enabled=false")
+                     .run(context -> assertThat(context).doesNotHaveBean(LazyConnectionDataSourceProxy.class));
     }
 
     @Test
     void should_be_loaded_MappedDataSource_when_used_default_configuration() {
-        loadContext("datasource.routing.enabled=true",
-                    "datasource.routing.defaults.url=jdbc:h2:mem:DEFAULTS;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=false",
-                    "datasource.routing.defaults.type=org.apache.tomcat.jdbc.pool.DataSource",
-                    "datasource.routing.defaults.driver-class-name=org.h2.Driver",
-                    "datasource.routing.defaults.initialize=false",
-                    "datasource.routing.defaults.username=sa",
-                    "datasource.routing.defaults.tomcat.max-active=10",
-                    "datasource.routing.mapped.first.url=jdbc:h2:mem:MAPPED1;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=false",
-                    "datasource.routing.mapped.first.type=com.zaxxer.hikari.HikariDataSource",
-                    "datasource.routing.mapped.first.driver-class-name=org.h2.Driver",
-                    "datasource.routing.mapped.first.initialize=false",
-                    "datasource.routing.mapped.first.username=sa",
-                    "datasource.routing.mapped.first.hikari.maximum-pool-size=9");
-        assertAll(
-            () -> assertThat(dataSource()).isNotNull(),
-            () -> assertThat(dataSource().getTargetDataSource()).isInstanceOf(DelegateRoutingDataSource.class),
-            () -> assertThat(defaults().getMaxActive()).isEqualTo(10),
-            () -> assertThat(defaults().isTestOnBorrow()).isTrue(),
-            () -> assertThat(defaults().getValidationQuery()).isEqualTo("SELECT 1"),
-            () -> assertThat(first().getMaximumPoolSize()).isEqualTo(9),
-            () -> assertThat(routingDataSourcePublicMetrics().metrics()).isNotEmpty()
-        );
+        contextRunner.withPropertyValues("datasource.routing.enabled=true",
+                                         "datasource.routing.defaults.url=jdbc:h2:mem:DEFAULTS;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=false",
+                                         "datasource.routing.defaults.type=org.apache.tomcat.jdbc.pool.DataSource",
+                                         "datasource.routing.defaults.driver-class-name=org.h2.Driver",
+                                         "datasource.routing.defaults.initializationMode=never",
+                                         "datasource.routing.defaults.username=sa",
+                                         "datasource.routing.defaults.tomcat.max-active=10",
+                                         "datasource.routing.mapped.first.url=jdbc:h2:mem:MAPPED1;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=false",
+                                         "datasource.routing.mapped.first.driver-class-name=org.h2.Driver",
+                                         "datasource.routing.mapped.first.initializationMode=never",
+                                         "datasource.routing.mapped.first.username=sa",
+                                         "datasource.routing.mapped.first.hikari.maximum-pool-size=9")
+                     .run(context -> assertAll(
+                         () -> assertThat(context).hasSingleBean(LazyConnectionDataSourceProxy.class),
+                         () -> assertThat(dataSource(context).getTargetDataSource()).isInstanceOf(DelegateRoutingDataSource.class),
+                         () -> assertThat(defaults(context).getMaxActive()).isEqualTo(10),
+                         () -> assertThat(defaults(context).isTestOnBorrow()).isTrue(),
+                         () -> assertThat(defaults(context).getValidationQuery()).isEqualTo("SELECT 1"),
+                         () -> assertThat(mappedFirst(context).getMaximumPoolSize()).isEqualTo(9),
+                         () -> assertThat(context).hasSingleBean(RoutingDataSourceMetrics.class)
+                     ));
     }
 
-    private DataSource defaults() {
-        return defaultTargetDataSource();
+    private LazyConnectionDataSourceProxy dataSource(final AssertableApplicationContext context) {
+        return context.getBean(LazyConnectionDataSourceProxy.class);
     }
 
-    private HikariDataSource first() {
-        return targetDataSource("first", HikariDataSource.class);
+    private DataSource defaults(final AssertableApplicationContext context) {
+        return defaultTargetDataSource(context);
     }
 
-    private <T> T targetDataSource(String key, Class<T> target) {
-        return target.cast(resolvedDataSources().get(key));
+    private HikariDataSource mappedFirst(final AssertableApplicationContext context) {
+        return targetDataSource(context, "first", HikariDataSource.class);
     }
 
-    private Map resolvedDataSources() {
-        return Map.class.cast(ReflectionTestUtils.getField(ruleBaseRoutingDataSource(), "resolvedDataSources"));
+    private <T> T targetDataSource(final AssertableApplicationContext context, final String key, final Class<T> target) {
+        return target.cast(resolvedDataSources(context).get(key));
     }
 
-    private DataSource defaultTargetDataSource() {
-        return DataSource.class.cast(ReflectionTestUtils.getField(ruleBaseRoutingDataSource(), "defaultTargetDataSource"));
+    private DataSource defaultTargetDataSource(final AssertableApplicationContext context) {
+        return DataSource.class.cast(ReflectionTestUtils.getField(ruleBaseRoutingDataSource(context), "defaultTargetDataSource"));
     }
 
-    private DelegateRoutingDataSource ruleBaseRoutingDataSource() {
-        return DelegateRoutingDataSource.class.cast(dataSource().getTargetDataSource());
+    private Map resolvedDataSources(final AssertableApplicationContext context) {
+        return Map.class.cast(ReflectionTestUtils.getField(ruleBaseRoutingDataSource(context), "resolvedDataSources"));
     }
 
-    private RoutingDataSourcePublicMetrics routingDataSourcePublicMetrics() {
-        return context.getBean(RoutingDataSourcePublicMetrics.class);
-    }
-
-    @Test
-    void should_be_not_loaded_MappedDataSource_when_mapped_not_exists() {
-        loadContext("datasource.routing.enabled=true",
-                    "datasource.routing.defaults.url=jdbc:h2:mem:DEFAULTS;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=false",
-                    "datasource.routing.defaults.driver-class-name=org.h2.Driver",
-                    "datasource.routing.defaults.initialize=false",
-                    "datasource.routing.defaults.username=sa");
-        assertThatThrownBy(this::dataSource).isExactlyInstanceOf(NoSuchBeanDefinitionException.class);
+    private DelegateRoutingDataSource ruleBaseRoutingDataSource(final AssertableApplicationContext context) {
+        return DelegateRoutingDataSource.class.cast(dataSource(context).getTargetDataSource());
     }
 
     @Test
-    void should_be_not_loaded_MappedDataSource_when_defaults_not_exists() {
-        loadContext("datasource.routing.enabled=true",
-                    "datasource.routing.mapped.first.url=jdbc:h2:mem:MAPPED1;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=false",
-                    "datasource.routing.mapped.first.driver-class-name=org.h2.Driver",
-                    "datasource.routing.mapped.first.initialize=false",
-                    "datasource.routing.mapped.first.username=sa");
-        assertThatThrownBy(this::dataSource).isExactlyInstanceOf(NoSuchBeanDefinitionException.class);
+    void should_be_not_loaded_MappedDataSource_when_on_not_exists() {
+        contextRunner.withPropertyValues("datasource.routing.enabled=true",
+                                         "datasource.routing.defaults.url=jdbc:h2:mem:DEFAULTS;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=false",
+                                         "datasource.routing.defaults.driver-class-name=org.h2.Driver",
+                                         "datasource.routing.defaults.initializationMode=never",
+                                         "datasource.routing.defaults.username=sa")
+                     .run(context -> assertThat(context).doesNotHaveBean(LazyConnectionDataSourceProxy.class));
     }
 
-    private void loadContext(final String... pairs) {
-        addEnvironment(context, pairs);
-        context.register(MappedDataSourceConfigurationTest.DefaultConfiguration.class);
-        context.register(RoutingDataSourceAutoConfiguration.class);
-        context.refresh();
-    }
-
-    @Configuration
-    static class DefaultConfiguration {
+    @Test
+    void should_be_not_loaded_MappedDataSource_when_off_not_exists() {
+        contextRunner.withPropertyValues("datasource.routing.enabled=true",
+                                         "datasource.routing.mapped.first.url=jdbc:h2:mem:MAPPED1;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=false",
+                                         "datasource.routing.mapped.first.driver-class-name=org.h2.Driver",
+                                         "datasource.routing.mapped.first.initializationMode=never",
+                                         "datasource.routing.mapped.first.username=sa")
+                     .run(context -> assertThat(context).doesNotHaveBean(LazyConnectionDataSourceProxy.class));
     }
 }

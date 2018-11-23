@@ -16,7 +16,6 @@
 
 package com.github.aafwu00.routing.datasource.spring.boot.autoconfigure.mapped;
 
-import org.springframework.boot.actuate.endpoint.PublicMetrics;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -26,14 +25,15 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 
 import com.github.aafwu00.routing.datasource.spring.RoutingRule;
-import com.github.aafwu00.routing.datasource.spring.SwitchableMode;
 import com.github.aafwu00.routing.datasource.spring.boot.autoconfigure.RoutingCondition;
 import com.github.aafwu00.routing.datasource.spring.boot.autoconfigure.RoutingDataSourceAvailableCondition;
 import com.github.aafwu00.routing.datasource.spring.boot.autoconfigure.RoutingType;
 import com.github.aafwu00.routing.datasource.spring.boot.autoconfigure.support.DelegateRoutingDataSourceFactory;
-import com.github.aafwu00.routing.datasource.spring.boot.autoconfigure.support.RoutingDataSourcePublicMetrics;
+import com.github.aafwu00.routing.datasource.spring.boot.autoconfigure.support.RoutingDataSourceMetrics;
 import com.github.aafwu00.routing.datasource.spring.boot.autoconfigure.support.TargetDataSources;
 import com.github.aafwu00.routing.datasource.spring.boot.autoconfigure.support.TargetDataSourcesFactory;
+
+import io.micrometer.core.instrument.binder.MeterBinder;
 
 import static com.github.aafwu00.routing.datasource.spring.boot.autoconfigure.RoutingCondition.PREFIX;
 import static com.github.aafwu00.routing.datasource.spring.boot.autoconfigure.mapped.MappedDataSourceProperties.DEFAULTS;
@@ -70,12 +70,11 @@ public class MappedDataSourceConfiguration {
 
     @Configuration
     @ConditionalOnProperty(value = RoutingType.SCOPE + ".metrics.enabled", matchIfMissing = true)
-    @ConditionalOnClass(PublicMetrics.class)
-    static class RoutingDataSourcePublicMetricsConfiguration {
+    @ConditionalOnClass(MeterBinder.class)
+    static class RoutingDataSourceMetricsConfiguration {
         @Bean
-        public RoutingDataSourcePublicMetrics<SwitchableMode> routingDataSourcePublicMetrics(
-            final TargetDataSources<SwitchableMode> targetDataSources) {
-            return new RoutingDataSourcePublicMetrics<>(targetDataSources);
+        public RoutingDataSourceMetrics<String> routingDataSourceMetrics(final TargetDataSources<String> targetDataSources) {
+            return new RoutingDataSourceMetrics<>(targetDataSources);
         }
     }
 

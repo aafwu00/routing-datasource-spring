@@ -16,13 +16,14 @@
 
 package com.github.aafwu00.routing.datasource.spring.boot.autoconfigure;
 
-import java.util.Locale;
-
 import org.springframework.boot.autoconfigure.condition.ConditionMessage;
 import org.springframework.boot.autoconfigure.condition.ConditionOutcome;
 import org.springframework.boot.autoconfigure.condition.SpringBootCondition;
-import org.springframework.boot.bind.RelaxedPropertyResolver;
+import org.springframework.boot.context.properties.bind.BindResult;
+import org.springframework.boot.context.properties.bind.Bindable;
+import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.context.annotation.ConditionContext;
+import org.springframework.core.env.Environment;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.core.type.ClassMetadata;
@@ -32,23 +33,49 @@ import org.springframework.core.type.ClassMetadata;
  */
 public class RoutingCondition extends SpringBootCondition {
     public static final String PREFIX = RoutingType.SCOPE + ".";
+    private static final String TYPE = PREFIX + "type";
 
     @Override
     public ConditionOutcome getMatchOutcome(final ConditionContext context, final AnnotatedTypeMetadata metadata) {
+        final ConditionMessage.Builder message = messageBuilder(metadata);
+        if (!environment(context).containsProperty(TYPE)) {
+            return ConditionOutcome.match(message.because("automatic routing type"));
+        }
+        return getStrictTypeMatchOutcome(context, metadata, message);
+    }
+
+    private ConditionMessage.Builder messageBuilder(final AnnotatedTypeMetadata metadata) {
         String sourceClass = "";
         if (metadata instanceof ClassMetadata) {
             sourceClass = ClassMetadata.class.cast(metadata).getClassName();
         }
-        final ConditionMessage.Builder message = ConditionMessage.forCondition("Routing DataSource", sourceClass);
-        final RelaxedPropertyResolver resolver = new RelaxedPropertyResolver(context.getEnvironment(), PREFIX);
-        if (!resolver.containsProperty("type")) {
-            return ConditionOutcome.match(message.because("automatic routing type"));
+        return ConditionMessage.forCondition("Routing DataSource", sourceClass);
+    }
+
+    private ConditionOutcome getStrictTypeMatchOutcome(final ConditionContext context,
+                                                       final AnnotatedTypeMetadata metadata,
+                                                       final ConditionMessage.Builder message) {
+        final String type = environment(context).getProperty(TYPE);
+        final BindResult<RoutingType> bindResult = bind(context);
+        if (bindResult.isBound()) {
+            if (routingType(metadata).equals(bindResult.get())) {
+                return ConditionOutcome.match(message.because(type + " routing type"));
+            }
+            return ConditionOutcome.noMatch(message.didNotFind("'" + type + "' is wrong").atAll());
         }
-        final RoutingType routingType = RoutingType.getType(AnnotationMetadata.class.cast(metadata).getClassName());
-        final String value = resolver.getProperty("type").replace('-', '_').toUpperCase(Locale.getDefault());
-        if (value.equals(routingType.name().toUpperCase(Locale.getDefault()))) {
-            return ConditionOutcome.match(message.because(value + " routing type"));
-        }
-        return ConditionOutcome.noMatch(message.because(value + " routing type"));
+        return ConditionOutcome.noMatch(message.because(type + " routing type"));
+    }
+
+    private Environment environment(final ConditionContext context) {
+        return context.getEnvironment();
+    }
+
+    private BindResult<RoutingType> bind(final ConditionContext context) {
+        return Binder.get(environment(context))
+                     .bind(TYPE, Bindable.of(RoutingType.class));
+    }
+
+    private RoutingType routingType(final AnnotatedTypeMetadata metadata) {
+        return RoutingType.getType(AnnotationMetadata.class.cast(metadata).getClassName());
     }
 }

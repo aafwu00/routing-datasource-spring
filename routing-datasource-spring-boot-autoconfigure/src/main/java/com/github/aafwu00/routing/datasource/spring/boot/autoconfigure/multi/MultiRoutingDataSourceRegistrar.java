@@ -35,9 +35,8 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.beans.factory.support.BeanDefinitionValidationException;
-import org.springframework.boot.bind.PropertySourcesPropertyValues;
-import org.springframework.boot.bind.RelaxedDataBinder;
-import org.springframework.core.convert.support.DefaultConversionService;
+import org.springframework.boot.context.properties.bind.Bindable;
+import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -107,12 +106,9 @@ public class MultiRoutingDataSourceRegistrar implements BeanDefinitionRegistryPo
 
     private MultiRoutingDataSourceProperties properties(final BeanDefinitionRegistry registry) {
         final ConfigurableEnvironment environment = beanFactory(registry).getBean(ConfigurableEnvironment.class);
-        final MultiRoutingDataSourceProperties result = new MultiRoutingDataSourceProperties();
-        final RelaxedDataBinder binder = new RelaxedDataBinder(result, RoutingType.SCOPE);
-        binder.setConversionService(DefaultConversionService.getSharedInstance());
-        binder.bind(new PropertySourcesPropertyValues(environment.getPropertySources()));
-        binder.validate();
-        return result;
+        return Binder.get(environment)
+                     .bind(RoutingType.SCOPE, Bindable.of(MultiRoutingDataSourceProperties.class))
+                     .get();
     }
 
     private ListableBeanFactory beanFactory(final BeanDefinitionRegistry registry) {

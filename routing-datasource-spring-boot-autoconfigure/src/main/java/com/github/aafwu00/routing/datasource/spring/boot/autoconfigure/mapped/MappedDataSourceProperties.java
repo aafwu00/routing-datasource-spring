@@ -20,9 +20,9 @@ import java.util.Collection;
 import java.util.Map;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
-import org.hibernate.validator.constraints.NotEmpty;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
@@ -40,15 +40,9 @@ public class MappedDataSourceProperties implements BeanClassLoaderAware, Initial
     public static final String DEFAULTS = "defaults";
     public static final String MAPPED = "mapped";
     private ClassLoader classLoader;
-    /**
-     * Default DataSource
-     */
     @NotNull
     @Valid
     private DataSourceProperties defaults;
-    /**
-     * Key Mapped DataSource
-     */
     @NotNull
     @NotEmpty
     @Valid

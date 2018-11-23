@@ -30,6 +30,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.springframework.boot.jdbc.DataSourceInitializationMode.NEVER;
 
 /**
  * @author Taeho Kim
@@ -39,8 +40,8 @@ import static org.junit.jupiter.api.Assertions.assertAll;
                       initializers = ConfigFileApplicationContextInitializer.class)
 @TestPropertySource(properties = {"datasource.routing.enabled=false",
                                   "datasource.routing.type=Replication",
-                                  "datasource.routing.master.initialize=false",
-                                  "datasource.routing.slave.initialize=false"})
+                                  "datasource.routing.master.initializationMode=never",
+                                  "datasource.routing.slave.initializationMode=never"})
 @DirtiesContext
 class ReplicationDataSourcePropertiesTest {
     @Autowired
@@ -54,12 +55,12 @@ class ReplicationDataSourcePropertiesTest {
             () -> assertThat(master.getUrl()).isEqualTo("jdbc:h2:mem:MASTER"),
             () -> assertThat(master.getDriverClassName()).isEqualTo("org.h2.Driver"),
             () -> assertThat(master.getUsername()).isEqualTo("sa"),
-            () -> assertThat(master.isInitialize()).isFalse(),
+            () -> assertThat(master.getInitializationMode()).isEqualTo(NEVER),
             () -> assertThat(master.getSchema()).containsOnly("master.sql"),
             () -> assertThat(slave.getUrl()).isEqualTo("jdbc:h2:mem:SLAVE"),
             () -> assertThat(slave.getDriverClassName()).isEqualTo("org.h2.Driver"),
             () -> assertThat(slave.getUsername()).isEqualTo("sa"),
-            () -> assertThat(slave.isInitialize()).isFalse(),
+            () -> assertThat(slave.getInitializationMode()).isEqualTo(NEVER),
             () -> assertThat(slave.getSchema()).containsOnly("slave.sql")
         );
     }

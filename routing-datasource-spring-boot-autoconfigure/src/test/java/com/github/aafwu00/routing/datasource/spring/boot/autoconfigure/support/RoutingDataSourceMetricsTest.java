@@ -18,13 +18,13 @@ package com.github.aafwu00.routing.datasource.spring.boot.autoconfigure.support;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Stream;
 
 import javax.sql.DataSource;
 
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.actuate.metrics.Metric;
+
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -32,25 +32,25 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 /**
  * @author Taeho Kim
  */
-class RoutingDataSourcePublicMetricsTest {
+class RoutingDataSourceMetricsTest {
     @Test
     void metrics() {
         final Map<String, DataSource> dataSources = new HashMap<>();
         dataSources.put("key1", new BasicDataSource());
         dataSources.put("KEY2", new BasicDataSource());
         final TargetDataSources<String> targetDataSources = new TargetDataSources<>(dataSources);
-        final RoutingDataSourcePublicMetrics<String> metrics = new RoutingDataSourcePublicMetrics<>(targetDataSources);
+        final RoutingDataSourceMetrics<String> metrics = new RoutingDataSourceMetrics<>(targetDataSources);
+        final SimpleMeterRegistry register = new SimpleMeterRegistry();
+        metrics.bindTo(register);
         assertAll(
-            () -> assertThat(metricNames(metrics)).contains("datasource.key1.active"),
-            () -> assertThat(metricNames(metrics)).contains("datasource.key1.usage"),
-            () -> assertThat(metricNames(metrics)).contains("datasource.key1.max"),
-            () -> assertThat(metricNames(metrics)).contains("datasource.key2.active"),
-            () -> assertThat(metricNames(metrics)).contains("datasource.key2.usage"),
-            () -> assertThat(metricNames(metrics)).contains("datasource.key2.max")
+            () -> assertThat(register.get("datasource.key1.active").gauge().value()).isNotNegative(),
+            () -> assertThat(register.get("datasource.key1.usage").gauge().value()).isNotNegative(),
+            () -> assertThat(register.get("datasource.key1.max").gauge().value()).isNotNegative(),
+            () -> assertThat(register.get("datasource.key1.min").gauge().value()).isNotNegative(),
+            () -> assertThat(register.get("datasource.key2.active").gauge().value()).isNotNegative(),
+            () -> assertThat(register.get("datasource.key2.usage").gauge().value()).isNotNegative(),
+            () -> assertThat(register.get("datasource.key2.max").gauge().value()).isNotNegative(),
+            () -> assertThat(register.get("datasource.key2.min").gauge().value()).isNotNegative()
         );
-    }
-
-    private Stream<String> metricNames(final RoutingDataSourcePublicMetrics<String> metrics) {
-        return metrics.metrics().stream().map(Metric::getName);
     }
 }
