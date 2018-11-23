@@ -65,6 +65,7 @@ dependencies {
 
 .Table SwitchableDataSourceProperties
 |===
+| Name | Default | Description
 
 | datasource.routing.switchOff.*
 |
@@ -80,6 +81,7 @@ dependencies {
 
 .Table ReplicationDataSourceProperties
 |===
+| Name | Default | Description
 
 | datasource.routing.master.*
 |
@@ -95,6 +97,7 @@ dependencies {
 
 .Table MappedDataSourceProperties
 |===
+| Name | Default | Description
 
 | datasource.routing.defaults.*
 |
@@ -110,6 +113,7 @@ dependencies {
 
 .Table MultiRoutingDataSourceProperties
 |===
+| Name | Default | Description
 
 | datasource.routing.targets.[name].*
 |
