@@ -18,8 +18,6 @@ package com.github.aafwu00.routing.datasource.spring.boot.autoconfigure.multi;
 
 import java.util.Map;
 
-import javax.sql.DataSource;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.support.BeanDefinitionValidationException;
@@ -127,7 +125,6 @@ class MultiRoutingDataSourceConfigurationTest {
                          () -> assertThat(context).hasSingleBean(ChainedTransactionManager.class),
                          () -> assertThat(context).hasSingleBean(RoutingDataSourceMetrics.class)
                      ));
-
     }
 
     private org.apache.tomcat.jdbc.pool.DataSource master(final AssertableApplicationContext context) {
@@ -160,10 +157,6 @@ class MultiRoutingDataSourceConfigurationTest {
 
     private HikariDataSource third(final AssertableApplicationContext context) {
         return HikariDataSource.class.cast(dataSource(context, "third", LazyConnectionDataSourceAdaptor.class).getTargetDataSource());
-    }
-
-    private DataSource dataSource(final AssertableApplicationContext context) {
-        return context.getBean(DataSource.class);
     }
 
     private LazyConnectionDataSourceProxy dataSource(final AssertableApplicationContext context, String name) {
