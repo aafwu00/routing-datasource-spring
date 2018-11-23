@@ -23,9 +23,9 @@ jobs:
           keys:
             - v1-dependencies-{{ checksum "build.gradle" }}-{{ checksum "routing-datasource-spring-boot-autoconfigure/build.gradle" }}-{{ checksum "routing-datasource-spring-boot-starter/build.gradle" }}
             # fallback to using the latest cache if no exact match is found
-            - v1-dependencies--------
+            - v1-dependencies---
 
-      - run: ./gradlew :routing-datasource-spring-boot-starter:dependencies -Pexclude-ci
+      - run: ./gradlew :routing-datasource-spring-boot-starter:dependencies
 
       - save_cache:
           paths:
