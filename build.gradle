@@ -113,6 +113,14 @@ subprojects {
         jacoco {
             toolVersion = '0.8.2'
         }
+
+        jacocoTestReport {
+            reports {
+                html.enabled = true
+                xml.enabled = true
+                csv.enabled = false
+            }
+        }
     }
 
     if (project.name.endsWith('sample')) {
