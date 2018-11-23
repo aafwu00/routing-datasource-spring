@@ -21,7 +21,7 @@ jobs:
       # Download and cache dependencies
       - restore_cache:
           keys:
-            - v1-dependencies-{{ checksum "build.gradle" }}-{{ checksum "routing-datasource-spring-boot-autoconfigure/build.gradle" }}-{{ checksum "routing-datasource-spring-boot-starter/build.gradle" }
+            - v1-dependencies-{{ checksum "build.gradle" }}-{{ checksum "routing-datasource-spring-boot-autoconfigure/build.gradle" }}-{{ checksum "routing-datasource-spring-boot-starter/build.gradle" }}
             # fallback to using the latest cache if no exact match is found
             - v1-dependencies--------
 
@@ -30,7 +30,7 @@ jobs:
       - save_cache:
           paths:
             - ~/.gradle
-          key: v1-dependencies-{{ checksum "build.gradle" }}-{{ checksum "routing-datasource-spring-boot-autoconfigure/build.gradle" }}-{{ checksum "routing-datasource-spring-boot-starter/build.gradle" }
+          key: v1-dependencies-{{ checksum "build.gradle" }}-{{ checksum "routing-datasource-spring-boot-autoconfigure/build.gradle" }}-{{ checksum "routing-datasource-spring-boot-starter/build.gradle" }}
 
       # run tests!
       - run: ./gradlew check jacocoTestReport
