@@ -16,6 +16,7 @@ coverage:
 
   ignore:          # files and folders that will be removed during processing
     - "samples"
+    - "ignore"
 
 comment:
   layout: "header, diff"
