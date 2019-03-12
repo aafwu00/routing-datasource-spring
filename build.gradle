@@ -1,9 +1,9 @@
 plugins {
-    id 'nebula.project' version '5.2.1'
+    id 'nebula.project' version '6.0.0'
     id 'nebula.info' version '5.0.0'
     id 'nebula.optional-base' version '5.0.0'
     id 'nebula.release' version '9.2.0'
-    id 'nebula.lint' version '10.4.2'
+    id 'nebula.lint' version '11.0.0'
 
     id 'nebula.maven-publish' version '9.5.0' apply false
     id 'nebula.maven-apache-license' version '9.5.0' apply false
@@ -15,7 +15,7 @@ plugins {
 
     id 'com.github.spotbugs' version '1.6.9' apply false
 
-    id 'com.github.ben-manes.versions' version '0.20.0'
+    id 'com.github.ben-manes.versions' version '0.21.0'
     id 'com.dorongold.task-tree' version '1.3.1'
 }
 
@@ -79,7 +79,7 @@ subprojects {
         }
 
         checkstyle {
-            toolVersion = '8.17'
+            toolVersion = '8.18'
             ignoreFailures = false
             maxErrors = 0
             maxWarnings = 0
@@ -91,14 +91,20 @@ subprojects {
         }
 
         spotbugs {
-            toolVersion = '3.1.11'
+            toolVersion = '3.1.12'
             ignoreFailures = false
             effort = 'max'
             reportLevel = 'high'
         }
+        tasks.withType(com.github.spotbugs.SpotBugsTask) {
+            reports {
+                xml.enabled = false
+                html.enabled = true
+            }
+        }
 
         pmd {
-            toolVersion = '6.11.0'
+            toolVersion = '6.12.0'
             ruleSetFiles = rootProject.files('config/pmd/rulesets.xml')
             ignoreFailures = true
             rulePriority = 3
@@ -143,6 +149,10 @@ subprojects {
     }
 
     dependencies {
+        if (!project.name.contains('sample')) {
+            spotbugsPlugins 'com.h3xstream.findsecbugs:findsecbugs-plugin:1.8.0'
+        }
+
         testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
         testImplementation 'org.junit.jupiter:junit-jupiter-api'
         testImplementation 'org.assertj:assertj-core'
